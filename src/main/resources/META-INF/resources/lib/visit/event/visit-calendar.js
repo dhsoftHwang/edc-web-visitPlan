@@ -1,6 +1,6 @@
 import React from "react";
 
-export default class VisitCalendar extends Comment {
+export default class VisitCalendar extends Compoment {
     constructor(props) {
         super(props);
     }

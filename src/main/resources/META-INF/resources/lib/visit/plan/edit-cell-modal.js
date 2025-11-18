@@ -1,6 +1,6 @@
 import React from "react";
 
-export default class EditCellModal extends Comment {
+export default class EditCellModal extends Compoment {
     constructor(props) {
         super(props);
     }

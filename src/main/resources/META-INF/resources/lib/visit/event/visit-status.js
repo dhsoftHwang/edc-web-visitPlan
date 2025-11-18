@@ -1,6 +1,6 @@
 import React from "react";
 
-export default class VisitStatus extends Comment {
+export default class VisitStatus extends Compoment {
     constructor(props) {
         super(props);
     }
