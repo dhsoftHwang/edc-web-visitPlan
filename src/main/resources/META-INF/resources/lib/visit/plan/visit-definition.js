@@ -1,6 +1,6 @@
-import React from "react";
+import React, { Component } from "react";
 
-export default class VisitDefiniton extends Compoment {
+export default class VisitDefiniton extends Component {
     constructor(props) {
         super(props);
     }
