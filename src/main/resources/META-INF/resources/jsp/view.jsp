@@ -36,6 +36,7 @@
             namespace: '<portlet:namespace/>',
             groupId: themeDisplay.getScopeGroupId(),
             userId: themeDisplay.getUserId(),
+            userName: '<%= themeDisplay.getUser().getFullName() %>',
             dafaultLanguageId: '<%= defaultLocale.toLanguageTag() %>',
             currentLanguageId: '<%= locale.toLanguageTag() %>',
             availableLanguageIds: '<%= String.join( ",", locales.toArray(new String[0]) ) %>', 

@@ -1,6 +1,8 @@
-import React from "react";
-export function LoadingSpinner() {
-    return (
+import React, { Component } from "react";
+
+export default class LoadingSpinner extends Component {
+  render() {
+    return(
       <div style={{
         display: 'flex',
         justifyContent: 'center',
@@ -22,5 +24,6 @@ export function LoadingSpinner() {
         }
       `}</style>
     </div>
-  );
+    );
+  }
 }

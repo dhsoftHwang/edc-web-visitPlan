@@ -6,8 +6,10 @@ export default class EditCellModal extends Component {
     }
 
     render() {
-        <div>
-            <h1>Edit Cell Modal!</h1>
-        </div>
+        return(
+            <div>
+                <h1>Edit Cell Modal!</h1>
+            </div>
+        );
     }
 }
