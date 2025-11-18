@@ -6,8 +6,10 @@ export default class AddModal extends Component {
     }
 
     render() {
-        <div>
-            <h1>Add Modal!</h1>
-        </div>
+        return(
+            <div>
+                <h1>Add Modal!</h1>
+            </div>
+        );
     }
 }

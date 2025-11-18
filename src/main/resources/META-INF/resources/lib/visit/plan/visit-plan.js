@@ -6,8 +6,10 @@ export default class VisitPlan extends Component {
     }
 
     render() {
-        <div>
-            <h1>Visit Plan!</h1>
-        </div>
+        return(
+            <div>
+                <h1>Visit Plan!</h1>
+            </div>
+        );
     }
 }

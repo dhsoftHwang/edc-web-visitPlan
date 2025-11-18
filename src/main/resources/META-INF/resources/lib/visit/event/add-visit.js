@@ -6,8 +6,10 @@ export default class AddVisit extends Component {
     }
 
     render() {
-        <div>
-            <h1>Add Visit!</h1>
-        </div>
+        return(
+            <div>
+                <h1>Add Visit!</h1>
+            </div>
+        );
     }
 }
