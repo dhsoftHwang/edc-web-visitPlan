@@ -1,0 +1,46 @@
+{
+	"dependencies": {
+		"react": "18.3.1",
+		"react-dom": "18.3.1",
+		"react-error-boundary": "^6.0.0",
+		"react-hook-form": "^7.64.0",
+    	"react-router-dom": "^7.9.4",
+    	"@tanstack/react-query": "^5.90.2",
+    	"@clayui/autocomplete": "^3.143.0",
+		"@clayui/button": "^3.143.0",
+		"@clayui/core": "^3.143.0",
+		"@clayui/css": "^3.127.0",
+		"@clayui/date-picker": "^3.143.0",
+		"@clayui/drop-down": "^3.143.0",
+		"@clayui/form": "^3.143.0",
+		"@clayui/icon": "^3.143.0",
+		"@clayui/label": "^3.143.0",
+		"@clayui/layout": "^3.143.0",
+		"@clayui/link": "^3.144.1",
+		"@clayui/localized-input": "^3.143.0",
+		"@clayui/modal": "^3.143.0",
+		"@clayui/multi-select": "^3.143.0",
+		"@clayui/multi-step-nav": "^3.143.0",
+		"@clayui/nav": "^3.149.0",
+		"@clayui/navigation-bar": "^3.148.0",
+		"@clayui/pagination-bar": "^3.143.0",
+		"@clayui/panel": "^3.143.0",
+		"@clayui/sticker": "^3.147.0",
+		"@clayui/tabs": "^3.143.0",
+		"@clayui/toolbar": "^3.143.0",
+		"@clayui/tooltip": "^3.143.0"
+	},
+	"devDependencies": {
+		"@babel/cli": "^7.0.0",
+		"@babel/core": "^7.0.0",
+		"@babel/preset-env": "^7.0.0",
+		"@babel/preset-react": "^7.0.0",
+		"esbuild":"^0.20.2"
+	},
+	"main": "lib/index.js",
+	"name": "edc-visit-web",
+	"scripts": {
+		"build": "esbuild ./src/main/resources/META-INF/resources/lib/index.js --bundle --outfile=./build/resources/main/META-INF/resources/lib/index.js --loader:.js=jsx --format=esm"
+	},
+	"version": "1.0.0"
+}

@@ -1,0 +1,5 @@
+Bundle-Name: edc-visit-web
+Bundle-SymbolicName: com.dhsoft.edc.visit.web
+Bundle-Version: 1.0.0
+Export-Package: com.dhsoft.edc.visit.web.constants
+Web-ContextPath: /edc-visit-web
