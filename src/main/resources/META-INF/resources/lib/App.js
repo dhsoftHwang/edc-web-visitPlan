@@ -16,6 +16,7 @@ function App({appParams}) {
         <MemoryRouter>
             <Suspense fallback={<LoadingSpinner/>}>
                 <Routes>
+                    <Route path="/" element={<Navigate to="/visit" replace />}/>
                     <Route path="/visit" element={<MainLayout/>}>
                         <Route path="/visit/definition" element={<VisitDefiniton {...appParams}/>}/>
                         <Route path="/visit/plan" element={<VisitPlan {...appParams}/>}/>

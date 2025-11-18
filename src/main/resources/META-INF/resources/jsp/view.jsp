@@ -1,4 +1,4 @@
-<%@ include file="/init.jsp" %>
+<%@ include file="/jsp/init.jsp" %>
 
 <%
     String workingPortletName = ParamUtil.getString(
