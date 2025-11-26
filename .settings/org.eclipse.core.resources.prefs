@@ -1,0 +1,6 @@
+eclipse.preferences.version=1
+encoding//src/main/java/com/dhsoft/edc/visit/web/command/resource/AddVisitDefinitionMVCResourceCommand.java=UTF-8
+encoding//src/main/java/com/dhsoft/edc/visit/web/command/resource/DeleteVisitDefinitionMVCResourceCommand.java=UTF-8
+encoding//src/main/java/com/dhsoft/edc/visit/web/command/resource/GetGroupsMVCResourceCommand.java=UTF-8
+encoding//src/main/java/com/dhsoft/edc/visit/web/command/resource/GetVisitDefinitionsMVCResourceCommand.java=UTF-8
+encoding//src/main/java/com/dhsoft/edc/visit/web/command/resource/UpdateVisitDefinitionMVCResourceCommand.java=UTF-8
