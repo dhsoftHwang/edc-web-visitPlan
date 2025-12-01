@@ -16,13 +16,14 @@ import javax.portlet.ResourceResponse;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
+
 @Component(
-        immediate = true,
-        property = {
-                "javax.portlet.name=edcvisitweb",
-                "mvc.command.name=/edc/getVisitDefinitions"
-        },
-        service = MVCResourceCommand.class
+    immediate = true,
+    property = {
+        "javax.portlet.name=edcvisitweb",
+        "mvc.command.name=/edc/getVisitDefinitions"
+    },
+    service = MVCResourceCommand.class
 )
 public class GetVisitDefinitionsMVCResourceCommand extends BaseMVCResourceCommand {
 
@@ -33,20 +34,28 @@ public class GetVisitDefinitionsMVCResourceCommand extends BaseMVCResourceComman
     protected void doServeResource(ResourceRequest request, ResourceResponse response)
             throws Exception {
 
-        long expGroupId = ParamUtil.getLong(request, "experimentalGroupId");
+        long experimentalGroupId = ParamUtil.getLong(request, "experimentalGroupId");
+
+        List<VisitDefinition> list =
+                _visitDefinitionLocalService.getByExperimentalGroup(experimentalGroupId);
 
         JSONArray arr = JSONFactoryUtil.createJSONArray();
 
-        List<VisitDefinition> list =
-                _visitDefinitionLocalService.getByExperimentalGroup(expGroupId);
-
         for (VisitDefinition v : list) {
             JSONObject o = JSONFactoryUtil.createJSONObject();
+
             o.put("visitDefinitionId", v.getVisitDefinitionId());
             o.put("name", v.getName());
+
+            // ⚠ anchorType → STRING으로 통일
+            String anchor = v.getAnchorType();
+            o.put("anchorType", anchor == null ? "" : anchor);
+
             o.put("offset", v.getOffset());
             o.put("windowMinus", v.getWindowMinus());
             o.put("windowPlus", v.getWindowPlus());
+            o.put("order", v.getOrder()); // 정렬용
+
             arr.put(o);
         }
 
@@ -54,4 +63,3 @@ public class GetVisitDefinitionsMVCResourceCommand extends BaseMVCResourceComman
         response.getWriter().write(arr.toString());
     }
 }
-

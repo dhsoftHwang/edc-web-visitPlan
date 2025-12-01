@@ -35,7 +35,7 @@ public class UpdateVisitDefinitionMVCResourceCommand
             ResourceRequest resourceRequest,
             ResourceResponse resourceResponse) throws Exception {
 
-        // 🔥 디버그용: 실제 넘어오는 파라미터 찍어보기
+        // 🔥 디버깅: 넘어온 파라미터 출력
         java.util.Enumeration<String> names = resourceRequest.getParameterNames();
         while (names.hasMoreElements()) {
             String name = names.nextElement();
@@ -43,29 +43,28 @@ public class UpdateVisitDefinitionMVCResourceCommand
                     + java.util.Arrays.toString(resourceRequest.getParameterValues(name)));
         }
 
-        // ❌ String namespace = resourceResponse.getNamespace();
-        // ❌ namespace + "visitDefinitionId" 이런거 전부 제거
+        long visitDefinitionId = ParamUtil.getLong(resourceRequest, "visitDefinitionId");
+        String name = ParamUtil.getString(resourceRequest, "name");
 
-        long visitDefinitionId = ParamUtil.getLong(
-                resourceRequest, "visitDefinitionId");
+        // 🔥 새 anchorType
+        String anchorType = ParamUtil.getString(resourceRequest, "anchorType");  // ★추가됨★
 
-        String name = ParamUtil.getString(
-                resourceRequest, "name");
-
-        int offset = ParamUtil.getInteger(
-                resourceRequest, "offset", 0);
-
-        int windowMinus = ParamUtil.getInteger(
-                resourceRequest, "windowMinus", 0);
-
-        int windowPlus = ParamUtil.getInteger(
-                resourceRequest, "windowPlus", 0);
+        int offset = ParamUtil.getInteger(resourceRequest, "offset", 0);
+        int windowMinus = ParamUtil.getInteger(resourceRequest, "windowMinus", 0);
+        int windowPlus = ParamUtil.getInteger(resourceRequest, "windowPlus", 0);
 
         JSONObject result = JSONFactoryUtil.createJSONObject();
 
         try {
+            // ⭐ anchorType 포함한 update 서비스 호출 (네가 만들어야 하는 LocalServiceImpl 메서드)
             _visitDefinitionLocalService.updateVisitDefinitionBasic(
-                    visitDefinitionId, name, offset, windowMinus, windowPlus);
+                    visitDefinitionId, 
+                    name, 
+                    anchorType,   // ★추가됨★
+                    offset, 
+                    windowMinus, 
+                    windowPlus
+            );
 
             result.put("success", true);
         } catch (Exception e) {
@@ -80,6 +79,5 @@ public class UpdateVisitDefinitionMVCResourceCommand
         writer.flush();
         writer.close();
     }
-
 
 }
