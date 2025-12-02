@@ -39,7 +39,7 @@ public class GetGroupsMVCResourceCommand extends BaseMVCResourceCommand {
 
         // 서비스 호출
         List<ExperimentalGroup> list =
-                ExperimentalGroupLocalServiceUtil.getByGroupAndProject(groupId, projectId);
+                ExperimentalGroupLocalServiceUtil.getByGroupId(groupId);
 
         System.out.println("🔍 [GetGroups] DB 조회 결과 개수 = " + list.size());
 
