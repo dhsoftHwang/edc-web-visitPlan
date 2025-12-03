@@ -9,4 +9,9 @@ dependencies {
 	
 	compileOnly project(":modules:edc-backend:edc-backend-api")
     compileOnly project(":modules:edc-backend:edc-backend-service")
+    compile project(":modules:StationX:StationX-api")
+	compile project(":modules:SXIcecap-2:SXIcecap-api")
+	compile project(":modules:SXIcecap-2:SXIcecap-service")
+	compile project(":modules:SXSpyglass:SXSpyglass-api")
+	compile project(":modules:SXSpyglass:SXSpyglass-service")
 }

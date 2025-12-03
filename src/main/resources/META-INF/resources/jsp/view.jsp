@@ -22,6 +22,9 @@
 <portlet:resourceURL  var="baseResourceURL">
 </portlet:resourceURL>
 
+<portlet:resourceURL id="/edc/addVisit" var="addVisitResourceURL">
+</portlet:resourceURL>
+
 <liferay-portlet:renderURL portletName="<%=workingPortletName%>" var="workingPortletURL"  windowState="<%=LiferayWindowState.EXCLUSIVE.toString()%>">
 </liferay-portlet:renderURL>
 
@@ -37,6 +40,9 @@
             groupId: themeDisplay.getScopeGroupId(),
             userId: themeDisplay.getUserId(),
             userName: '<%= themeDisplay.getUser().getFullName() %>',
+            userInstitutionName: '<%= (themeDisplay.getUser().getOrganizations() != null && !themeDisplay.getUser().getOrganizations().isEmpty()) ? themeDisplay.getUser().getOrganizations().get(0).getName() : "" %>',
+            userInstitutionCode: '<%= (themeDisplay.getUser().getOrganizations() != null && !themeDisplay.getUser().getOrganizations().isEmpty()) ? themeDisplay.getUser().getOrganizations().get(0).getOrganizationId() : "" %>',
+            dafaultLanguageId: '<%= defaultLocale.toLanguageTag() %>',
             dafaultLanguageId: '<%= defaultLocale.toLanguageTag() %>',
             currentLanguageId: '<%= locale.toLanguageTag() %>',
             availableLanguageIds: '<%= String.join( ",", locales.toArray(new String[0]) ) %>', 
@@ -66,6 +72,7 @@
             },
 
             // ResourceCommand URL
+            addVisitURL: '<%= addVisitResourceURL %>'
             
         }
     };

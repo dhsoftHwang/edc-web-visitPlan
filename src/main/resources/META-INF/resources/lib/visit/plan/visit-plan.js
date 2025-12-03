@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 
 export default function VisitPlan(props) {
-
     const namespace = props.namespace;
     const baseResourceURL = props.baseResourceURL;
     const groupId = props.groupId;
@@ -31,7 +30,7 @@ export default function VisitPlan(props) {
             `&${ns}projectId=${projectId}`;
 
         try {
-            const res = await fetch(url);
+            const res = await fetch(url, { credentials: "include" });
             const data = await res.json();
 
             const items = data.items || data;
@@ -46,7 +45,6 @@ export default function VisitPlan(props) {
                     setSelectedSubject(subj);
                 }
             }
-
         } catch (err) {
             console.error("❌ Subject 목록 로딩 실패", err);
         }
@@ -69,7 +67,7 @@ export default function VisitPlan(props) {
             `&${ns}subjectId=${subjectId}`;
 
         try {
-            const res = await fetch(url);
+            const res = await fetch(url, { credentials: "include" });
             const json = await res.json();
 
             // 기본 방문만 집어넣기
@@ -80,7 +78,7 @@ export default function VisitPlan(props) {
                 .slice()
                 .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
 
-            // 🔥🔥 backend에서 내려준 unscheduled visit
+            // 🔥 backend에서 내려준 unscheduled visit
             const backendUnscheduled = (json.unscheduledVisits || []).map(u => ({
                 tempId: Date.now() + Math.random(), // 리액트 key 용
                 name: u.name || "",
@@ -90,13 +88,12 @@ export default function VisitPlan(props) {
 
             setSchedule({ ...json, visits });
 
-            // 🔥 schedule 로딩 후에도 subject 유지
+            // schedule 로딩 후에도 subject 유지
             const subj = subjects.find(s => s.subjectId == subjectId);
             if (subj) setSelectedSubject(subj);
 
-            // 🔥 기존 + 새로 추가될 unscheduled 모두 저장
+            // 기존 + 새로 추가될 unscheduled 모두 저장
             setUnscheduledVisits(backendUnscheduled);
-
         } catch (err) {
             console.error("❌ visit schedule 로딩 실패", err);
         }
@@ -104,11 +101,14 @@ export default function VisitPlan(props) {
         setLoading(false);
     };
 
-
-    // subject 선택 핸들러
+    // subject 선택 핸들러 (select용)
     const handleSelectSubject = (e) => {
         const sid = Number(e.target.value);
+        onSelectSubjectId(sid);
+    };
 
+    // row 클릭/셀렉트 공용 함수
+    const onSelectSubjectId = (sid) => {
         if (!sid) {
             setSelectedSubject(null);
             setSchedule(null);
@@ -120,7 +120,7 @@ export default function VisitPlan(props) {
         selectedSubjectIdRef.current = sid;
 
         const subj = subjects.find((s) => s.subjectId === sid);
-        setSelectedSubject(subj);
+        setSelectedSubject(subj || null);
 
         loadSchedule(sid);
     };
@@ -128,7 +128,6 @@ export default function VisitPlan(props) {
     // ============================================================
     // 3) Unscheduled Visit 핸들러 (프론트에서만 수정 가능)
     // ============================================================
-    // 추가
     const addUnscheduledVisit = () => {
         setUnscheduledVisits(prev => [
             ...prev,
@@ -140,7 +139,6 @@ export default function VisitPlan(props) {
         ]);
     };
 
-    // 값 변경
     const updateUnscheduledVisit = (index, field, value) => {
         const updated = [...unscheduledVisits];
         updated[index] = {
@@ -150,19 +148,14 @@ export default function VisitPlan(props) {
         setUnscheduledVisits(updated);
     };
 
-    // 삭제
     const removeUnscheduledVisit = (index) => {
         setUnscheduledVisits(prev => prev.filter((_, i) => i !== index));
     };
 
     // ============================================================
     // 4) 저장
-    //  - 기본 방문(visitDefinition 기반)은 read-only로 보여주지만,
-    //    save 시 SubjectVisitDefinition 에 모두 저장
-    //  - Unscheduled visit 은 offset=99, window=0, anchorType="UNSCHEDULED" 등으로 저장
     // ============================================================
     const saveVisitPlan = async () => {
-
         if (!selectedSubject) {
             return alert("대상자를 먼저 선택하세요.");
         }
@@ -171,8 +164,7 @@ export default function VisitPlan(props) {
             return alert("먼저 방문 스케줄을 로드하세요.");
         }
 
-        // 4-1) 기본 방문들 (readonly지만 그대로 저장용 payload로 보냄)
-        //      ⚠ order 를 index 로 새로 만들지 않고, backend 에서 내려준 order 유지
+        // 4-1) 기본 방문들
         const baseVisitsPayload = (schedule.visits || []).map((v, index) => ({
             ...v,
             order: v.order ?? index,   // v.order 없으면 index 로 fallback
@@ -183,16 +175,15 @@ export default function VisitPlan(props) {
             ? Math.max(...baseVisitsPayload.map(v => v.order ?? 0))
             : -1;
 
-        // 4-2) Unscheduled visit payload 변환 (backend + frontend 모두)
+        // 4-2) Unscheduled visit payload 변환
         const unscheduledPayload = unscheduledVisits.map((u, index) => ({
             visitDefinitionId: 0,
-            visitDefinitionCode: "",     // 🔥 unscheduled는 빈 코드 유지
+            visitDefinitionCode: "",
             name: u.name || `Unscheduled ${index + 1}`,
             anchorType: "UNSCHEDULED",
             offset: 99,
             windowMinus: 0,
             windowPlus: 0,
-            // 기본 방문들의 최대 order 뒤에 붙이기
             order: maxBaseOrder + 1 + index,
             unscheduledDate: u.date
         }));
@@ -227,7 +218,6 @@ export default function VisitPlan(props) {
             } else {
                 alert("저장 실패");
             }
-
         } catch (err) {
             console.error("❌ 저장 실패", err);
             alert("저장 중 오류 발생");
@@ -239,193 +229,486 @@ export default function VisitPlan(props) {
     // ============================================================
     useEffect(() => {
         loadSubjects();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     // ============================================================
     // 화면 렌더링
     // ============================================================
     return (
-        <div style={{ padding: "20px" }}>
-            <h2>📅 Visit Plan 관리</h2>
+        <>
+            <style>{css}</style>
 
-            {/* subject 선택 */}
-            <div style={{ border: "1px solid #ddd", padding: "16px" }}>
-                <h3>대상자 선택</h3>
+            <div className="layout">
+                {/* 왼쪽: 대상자 목록 */}
+                <aside className="left">
+                    <div className="left-title">■ 대상자 목록</div>
 
-                <select
-                    style={{ width: "100%", padding: "8px" }}
-                    value={selectedSubject ? String(selectedSubject.subjectId) : ""}
-                    onChange={handleSelectSubject}
-                >
-                    <option value="">-- 대상자 선택 --</option>
-
-                    {subjects.map((s) => (
-                        <option key={s.subjectId} value={String(s.subjectId)}>
-                            [{s.serialId}] {s.name}
-                        </option>
-                    ))}
-                </select>
-            </div>
-
-            {/* 로딩 표시 */}
-            {loading && <div style={{ marginTop: "10px" }}>⏳ 로딩중...</div>}
-
-            {/* 방문 스케줄 (기본 방문 - read only) */}
-            {schedule && (
-                <div style={{ marginTop: "20px" }}>
-                    {/* Subject 정보 박스 */}
-                    {schedule && selectedSubject && (
-                        <div style={{
-                            background: "#f7f8fa",
-                            border: "1px solid #e5e7eb",
-                            padding: "16px 20px",
-                            borderRadius: "8px",
-                            marginTop: "20px",
-                            marginBottom: "20px"
-                        }}>
-                            <div style={{ fontSize: "16px", fontWeight: "bold" }}>
-                                {schedule.subject.name}
-                                <span style={{ color: "#555" }}>
-                                    (ID: {schedule.subject.subjectId})
-                                </span>
-                                — 상태: Enrolled
-                            </div>
-
-                            <div style={{ marginTop: "6px", color: "#444" }}>
-                                기관: 서울대학교병원 / 직함: 환자
-                            </div>
-
-                            <div style={{ marginTop: "4px", color: "#444" }}>
-                                동의일(Consent Date): {schedule.subject.consentAgreeDate}
-                            </div>
-                        </div>
-                    )}
-
-                    <table style={{ width: "100%", marginTop: "12px", borderCollapse: "collapse" }}>
-                        <thead>
-                            <tr>
-                                <th style={{ borderBottom: "1px solid #ccc", padding: "6px", textAlign: "left" }}>방문명</th>
-                                <th style={{ borderBottom: "1px solid #ccc", padding: "6px", textAlign: "left" }}>Anchor</th>
-                                <th style={{ borderBottom: "1px solid #ccc", padding: "6px", textAlign: "right" }}>Offset</th>
-                                <th style={{ borderBottom: "1px solid #ccc", padding: "6px", textAlign: "right" }}>Window -</th>
-                                <th style={{ borderBottom: "1px solid #ccc", padding: "6px", textAlign: "right" }}>Window +</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {(schedule.visits || []).map((v, idx) => (
-                                <tr key={v.visitDefinitionId || idx}>
-                                    <td style={{ borderBottom: "1px solid #eee", padding: "6px" }}>
-                                        {v.name}
-                                    </td>
-                                    <td style={{ borderBottom: "1px solid #eee", padding: "6px" }}>
-                                        {v.anchorType}
-                                    </td>
-                                    <td style={{ borderBottom: "1px solid #eee", padding: "6px", textAlign: "right" }}>
-                                        {v.offset}
-                                    </td>
-                                    <td style={{ borderBottom: "1px solid #eee", padding: "6px", textAlign: "right" }}>
-                                        {v.windowMinus}
-                                    </td>
-                                    <td style={{ borderBottom: "1px solid #eee", padding: "6px", textAlign: "right" }}>
-                                        {v.windowPlus}
-                                    </td>
-                                </tr>
+                    <div className="mb-2">
+                        <div className="inline-label">대상자 선택</div>
+                        <select
+                            className="form-control"
+                            value={selectedSubject ? String(selectedSubject.subjectId) : ""}
+                            onChange={handleSelectSubject}
+                        >
+                            <option value="">-- 대상자 선택 --</option>
+                            {subjects.map((s) => (
+                                <option key={s.subjectId} value={String(s.subjectId)}>
+                                    [{s.serialId}] {s.name}
+                                </option>
                             ))}
-                        </tbody>
-                    </table>
-                </div>
-            )}
+                        </select>
+                    </div>
 
-            {/* Unscheduled Visit 섹션 */}
-            {selectedSubject && (
-                <div style={{ marginTop: "30px" }}>
-                    <h3>📝 Unscheduled Visit</h3>
+                    <div className="count-bar">
+                        <div>총 대상자 수: <b>{subjects.length}</b></div>
+                        {selectedSubject && (
+                            <div className="text-secondary small">
+                                선택: [{selectedSubject.serialId}] {selectedSubject.name}
+                            </div>
+                        )}
+                    </div>
 
-                    <button
-                        type="button"
-                        onClick={addUnscheduledVisit}
-                        style={{
-                            padding: "6px 12px",
-                            marginBottom: "10px",
-                            cursor: "pointer"
-                        }}
-                    >
-                        + Unscheduled Visit 추가
-                    </button>
-
-                    {unscheduledVisits.length === 0 && (
-                        <div style={{ color: "#777" }}>
-                            아직 Unscheduled Visit 이 없습니다. 상단 버튼으로 추가하세요.
-                        </div>
-                    )}
-
-                    {unscheduledVisits.length > 0 && (
-                        <table style={{ width: "100%", borderCollapse: "collapse", marginTop: "8px" }}>
+                    <div className="left-table">
+                        <table>
                             <thead>
                                 <tr>
-                                    <th style={{ borderBottom: "1px solid #ccc", padding: "6px" }}>이름</th>
-                                    <th style={{ borderBottom: "1px solid #ccc", padding: "6px" }}>방문 날짜</th>
-                                    <th style={{ borderBottom: "1px solid #ccc", padding: "6px" }}>삭제</th>
+                                    <th>대상자ID</th>
+                                    <th>호칭</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {unscheduledVisits.map((u, idx) => (
-                                    <tr key={u.tempId}>
-                                        <td style={{ borderBottom: "1px solid #eee", padding: "6px" }}>
-                                            <input
-                                                type="text"
-                                                value={u.name}
-                                                onChange={(e) =>
-                                                    updateUnscheduledVisit(idx, "name", e.target.value)
-                                                }
-                                                placeholder={`Unscheduled ${idx + 1}`}
-                                                style={{ width: "100%" }}
-                                            />
-                                        </td>
-                                        <td style={{ borderBottom: "1px solid #eee", padding: "6px" }}>
-                                            <input
-                                                type="date"
-                                                value={u.date}
-                                                onChange={(e) =>
-                                                    updateUnscheduledVisit(idx, "date", e.target.value)
-                                                }
-                                            />
-                                        </td>
-                                        <td style={{ borderBottom: "1px solid #eee", padding: "6px" }}>
-                                            <button
-                                                type="button"
-                                                onClick={() => removeUnscheduledVisit(idx)}
-                                                style={{ cursor: "pointer" }}
-                                            >
-                                                삭제
-                                            </button>
+                                {subjects.map(s => {
+                                    const active = selectedSubject && selectedSubject.subjectId === s.subjectId;
+                                    return (
+                                        <tr
+                                            key={s.subjectId}
+                                            className={active ? "row-active" : ""}
+                                            onClick={() => onSelectSubjectId(s.subjectId)}
+                                            style={{ cursor: "pointer" }}
+                                        >
+                                            <td>{s.serialId}</td>
+                                            <td>{s.name}</td>
+                                        </tr>
+                                    );
+                                })}
+                                {subjects.length === 0 && (
+                                    <tr>
+                                        <td colSpan={2} className="text-center text-secondary">
+                                            조회된 대상자가 없습니다.
                                         </td>
                                     </tr>
-                                ))}
+                                )}
                             </tbody>
                         </table>
-                    )}
-                </div>
-            )}
+                    </div>
+                </aside>
 
-            {/* 저장 버튼 (대상자 + 스케줄 있을 때만) */}
-            {selectedSubject && schedule && (
-                <div style={{ marginTop: "20px" }}>
-                    <button
-                        onClick={saveVisitPlan}
-                        style={{
-                            padding: "10px 20px",
-                            background: "#007aff",
-                            color: "#fff",
-                            border: "none",
-                            borderRadius: "6px",
-                            cursor: "pointer"
-                        }}
-                    >
-                        저장하기
-                    </button>
-                </div>
-            )}
-        </div>
+                {/* 오른쪽: 방문 계획 */}
+                <section className="right">
+                    {/* 상단 정보 바 */}
+                    <div className="info">
+                        {selectedSubject ? (
+                            <div className="info-row info-row-3">
+                                <div className="label">대상자</div>
+                                <div className="value">
+                                    [{selectedSubject.serialId}] {selectedSubject.name}
+                                </div>
+                                <div className="label">Subject ID</div>
+                                <div className="value">{selectedSubject.subjectId}</div>
+                                <div className="label">Enrolled 상태</div>
+                                <div className="value">Enrolled</div>
+                            </div>
+                        ) : (
+                            <div className="empty-hint">
+                                왼쪽 목록에서 대상자를 선택해 주세요.
+                            </div>
+                        )}
+                    </div>
+
+                    {/* 로딩 표시 */}
+                    {loading && (
+                        <div className="loading-bar">
+                            ⏳ 방문 스케줄을 불러오는 중...
+                        </div>
+                    )}
+
+                    {/* 기본 방문 스케줄 */}
+                    {schedule && (
+                        <div className="tab-body">
+                            <h2 className="tab-title">기본 방문 스케줄</h2>
+
+                            {/* consent 정보 등 */}
+                            {schedule.subject && (
+                                <div className="card">
+                                    <div className="card-line">
+                                        <span className="label-inline">동의일(Consent Date)</span>
+                                        <span className="value-inline">
+                                            {schedule.subject.consentAgreeDate || "-"}
+                                        </span>
+                                    </div>
+                                    <div className="card-line">
+                                        <span className="label-inline">기관</span>
+                                        <span className="value-inline">
+                                            {/* 실제 기관명 내려오면 바꿔쓰기 */}
+                                            {schedule.subject.institutionName || "—"}
+                                        </span>
+                                    </div>
+                                </div>
+                            )}
+
+                            <div className="schedule-wrap">
+                                <table className="basic-table">
+                                    <thead>
+                                        <tr>
+                                            <th>방문명</th>
+                                            <th>Anchor</th>
+                                            <th className="text-right">Offset</th>
+                                            <th className="text-right">Window -</th>
+                                            <th className="text-right">Window +</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {(schedule.visits || []).map((v, idx) => (
+                                            <tr key={v.visitDefinitionId || idx}>
+                                                <td>{v.name}</td>
+                                                <td>{v.anchorType}</td>
+                                                <td className="text-right">{v.offset}</td>
+                                                <td className="text-right">{v.windowMinus}</td>
+                                                <td className="text-right">{v.windowPlus}</td>
+                                            </tr>
+                                        ))}
+                                        {(schedule.visits || []).length === 0 && (
+                                            <tr>
+                                                <td colSpan={5} className="text-center text-secondary">
+                                                    등록된 기본 방문이 없습니다.
+                                                </td>
+                                            </tr>
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Unscheduled Visit 섹션 */}
+                    {selectedSubject && (
+                        <div className="tab-body">
+                            <div className="card card-unscheduled">
+                                <div className="card-header-row">
+                                    <h3 className="tab-title">Unscheduled Visit</h3>
+                                    <button type="button" onClick={addUnscheduledVisit}>
+                                        + Unscheduled Visit 추가
+                                    </button>
+                                </div>
+
+                                {unscheduledVisits.length === 0 && (
+                                    <div className="empty-hint">
+                                        아직 Unscheduled Visit 이 없습니다. 상단 버튼으로 추가하세요.
+                                    </div>
+                                )}
+
+                                {unscheduledVisits.length > 0 && (
+                                    <div className="schedule-wrap schedule-wrap-inner">
+                                        <table className="basic-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>이름</th>
+                                                    <th>방문 날짜</th>
+                                                    <th>삭제</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {unscheduledVisits.map((u, idx) => (
+                                                    <tr key={u.tempId}>
+                                                        <td>
+                                                            <input
+                                                                type="text"
+                                                                className="form-control"
+                                                                value={u.name}
+                                                                onChange={(e) =>
+                                                                    updateUnscheduledVisit(
+                                                                        idx,
+                                                                        "name",
+                                                                        e.target.value
+                                                                    )
+                                                                }
+                                                                placeholder={`Unscheduled ${idx + 1}`}
+                                                            />
+                                                        </td>
+                                                        <td>
+                                                            <input
+                                                                type="date"
+                                                                className="form-control"
+                                                                value={u.date}
+                                                                onChange={(e) =>
+                                                                    updateUnscheduledVisit(
+                                                                        idx,
+                                                                        "date",
+                                                                        e.target.value
+                                                                    )
+                                                                }
+                                                            />
+                                                        </td>
+                                                        <td className="text-center">
+                                                            <button
+                                                                type="button"
+                                                                className="btn-danger-outline"
+                                                                onClick={() => removeUnscheduledVisit(idx)}
+                                                            >
+                                                                삭제
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* 저장 버튼 */}
+                    {selectedSubject && schedule && (
+                        <div className="action-bar">
+                            <button type="button" onClick={saveVisitPlan}>
+                                저장하기
+                            </button>
+                        </div>
+                    )}
+                </section>
+            </div>
+        </>
     );
 }
+
+// AddVisit / VisitDefinition 과 통일된 스타일
+const css = `
+.layout { display:flex; gap:12px; }
+.left {
+  width: 380px;
+  border:1px solid #e5e7eb;
+  border-radius:8px;
+  background:#fafbfc;
+  display:flex;
+  flex-direction:column;
+  padding:10px;
+  font-size:0.95rem;
+  line-height:1.4;
+}
+.left-title {
+  font-weight:600;
+  color:#0b5fff;
+  margin-bottom:8px;
+  font-size:1.05rem;
+}
+.count-bar {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin:6px 0 8px;
+  font-size:0.9rem;
+}
+.left-table {
+  overflow:auto;
+  max-height:360px;
+  background:#fff;
+  border:1px solid #e5e7eb;
+  border-radius:6px;
+}
+.left-table table {
+  width:100%;
+  border-collapse:collapse;
+}
+.left-table table th,
+.left-table table td {
+  font-size:0.9rem;
+  line-height:1.45;
+  padding:8px 10px;
+  border-bottom:1px solid #f1f5f9;
+}
+.left-table table thead {
+  background:#f8fafc;
+}
+.left-table table th {
+  font-weight:600;
+  color:#0f172a;
+}
+.row-active { background:#e7f3ff; }
+
+.right {
+  flex:1;
+  border:1px solid #e5e7eb;
+  border-radius:8px;
+  background:#fff;
+  display:flex;
+  flex-direction:column;
+  min-width:0;
+}
+
+/* 상단 정보 바 */
+.info {
+  display:grid;
+  gap:10px;
+  padding:12px 10px;
+  border-bottom:1px solid #e5e7eb;
+  background:#f8fafc;
+}
+.info-row {
+  display:grid;
+  align-items:center;
+  column-gap:12px;
+  row-gap:6px;
+}
+.info-row-3 {
+  grid-template-columns:90px 1fr 90px 1fr 90px 1fr;
+}
+.label {
+  color:#475569;
+  text-align:right;
+  font-size:0.9rem;
+}
+.value {
+  color:#0f172a;
+  font-weight:600;
+  font-size:0.95rem;
+}
+
+/* 탭/섹션 공통 */
+.tab-body {
+  padding:10px;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+.tab-title {
+  font-size:1rem;
+  font-weight:600;
+  margin:0 0 4px;
+}
+.empty-hint {
+  padding:12px;
+  border-radius:6px;
+  background:#f8fafc;
+  color:#475569;
+  font-size:0.9rem;
+}
+
+/* 로딩 바 */
+.loading-bar {
+  padding:8px 12px;
+  font-size:0.9rem;
+  color:#475569;
+}
+
+/* 테이블 공통 */
+.schedule-wrap {
+  background:#fff;
+  border:1px solid #e5e7eb;
+  border-radius:6px;
+  max-height:320px;
+  overflow-y:auto;
+  overflow-x:auto;
+}
+.schedule-wrap-inner {
+  max-height:260px;
+}
+.basic-table {
+  width:100%;
+  border-collapse:collapse;
+  font-size:0.9rem;
+}
+.basic-table thead {
+  background:#f8fafc;
+}
+.basic-table th,
+.basic-table td {
+  padding:8px 10px;
+  border-bottom:1px solid #e5e7eb;
+}
+.basic-table tbody tr:hover {
+  background:#f9fafb;
+}
+
+/* 카드 */
+.card {
+  border:1px solid #e5e7eb;
+  border-radius:8px;
+  padding:8px 10px;
+  background:#f9fafb;
+  font-size:0.9rem;
+}
+.card-line {
+  display:flex;
+  justify-content:flex-start;
+  gap:6px;
+  margin-bottom:4px;
+}
+.label-inline {
+  color:#64748b;
+  min-width:130px;
+}
+.value-inline {
+  color:#0f172a;
+  font-weight:600;
+}
+.card-unscheduled {
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+.card-header-row {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+
+/* 버튼 / 인풋 */
+button {
+  padding:6px 12px;
+  border-radius:6px;
+  border:1px solid #0b5fff;
+  background:#eef4ff;
+  color:#0b5fff;
+  font-size:0.9rem;
+  cursor:pointer;
+  transition:background 0.15s, color 0.15s, border-color 0.15s;
+}
+button:hover {
+  background:#0b5fff;
+  color:#fff;
+}
+.btn-danger-outline {
+  border-color:#dc2626;
+  color:#dc2626;
+  background:#fff5f5;
+}
+.btn-danger-outline:hover {
+  background:#dc2626;
+  color:#fff;
+}
+.form-control {
+  width:100%;
+  padding:6px 8px;
+  border-radius:6px;
+  border:1px solid #cbd5e1;
+  font-size:0.9rem;
+}
+
+/* 기타 */
+.action-bar {
+  margin:8px 10px 10px;
+  display:flex;
+  justify-content:flex-end;
+}
+.inline-label {
+  font-size:0.9rem;
+  color:#475569;
+  margin-bottom:4px;
+}
+.text-center { text-align:center; }
+.text-right { text-align:right; }
+.text-secondary { color:#64748b; }
+.small { font-size:0.8rem; }
+`;

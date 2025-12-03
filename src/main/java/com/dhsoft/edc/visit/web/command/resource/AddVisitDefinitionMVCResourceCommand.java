@@ -48,7 +48,7 @@ public class AddVisitDefinitionMVCResourceCommand extends BaseMVCResourceCommand
 
         // --------------------------------------------------------
         // 🔥 1) 현재 그룹의 VisitDefinition 목록을 조회해서
-        //      가장 큰 order 값 계산
+        //      가장 큰 order 값 계산.
         // --------------------------------------------------------
         List<VisitDefinition> existingList =
                 _visitDefinitionLocalService.getByExperimentalGroup(experimentalGroupId);
