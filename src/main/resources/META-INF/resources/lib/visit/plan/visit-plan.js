@@ -562,7 +562,7 @@ const css = `
   row-gap:6px;
 }
 .info-row-3 {
-  grid-template-columns:90px 1fr 90px 1fr 90px 1fr;
+  grid-template-columns:100px 1fr 100px 1fr 130px 1fr;
 }
 .label {
   color:#475569;
