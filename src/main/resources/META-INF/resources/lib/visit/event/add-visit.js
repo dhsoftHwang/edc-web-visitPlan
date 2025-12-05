@@ -1103,7 +1103,7 @@ const css = `
 .right { flex:1; border:1px solid #e5e7eb; border-radius:8px; background:#fff; display:flex; flex-direction:column; }
 .info { display:grid; gap:10px; padding:12px 10px; border-bottom:1px solid #e5e7eb; background:#f8fafc; }
 .info-row { display:grid; align-items:center; column-gap:12px; row-gap:6px; }
-.info-row-3 { grid-template-columns:90px 1fr 90px 1fr 90px 1fr; }
+.info-row-3 { grid-template-columns:100px 1fr 100px 1fr 100px 1fr; }
 .label { color:#475569; text-align:right; font-size:0.95rem; }
 .value { color:#0f172a; font-weight:600; font-size:1.1rem; }
 .inline-group { display:flex; align-items:center; gap:8px; }

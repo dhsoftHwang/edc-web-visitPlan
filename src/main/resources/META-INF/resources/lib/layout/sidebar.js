@@ -71,16 +71,7 @@ class Sidebar extends Component {
             )}
           </div>
 
-          <div>
-            <NavLink to="/visit/calendar" style={({ isActive }) => linkStyle({ isActive: isActive || isEventSection })} onClick={() => this.toggleMenu("event")}>방문 관리</NavLink>
-            {openMenu === "event" && (
-              <div>
-                <NavLink to="/visit/calendar" style={subLinkStyle}>방문 Calendar</NavLink>
-                <NavLink to="/visit/add" style={subLinkStyle}>방문 등록</NavLink>
-                <NavLink to="/visit/state" style={subLinkStyle}>방문 현황</NavLink>
-              </div>
-            )}
-          </div>
+
         </nav>
       </aside>
     );
